@@ -47,8 +47,20 @@ export function ChatWidget() {
     setInput("");
     setIsLoading(true);
 
+    const historyForAPI = currentMessages.map(({ isPlaying, audio, ...rest }) => {
+        // Genkit expects role and content, where content is an array of parts.
+        return {
+            role: rest.role,
+            content: rest.content,
+        };
+    });
+
+    // Remove the latest message from history, as it is the current prompt
+    const history = historyForAPI.slice(0, -1);
+
+
     const result = await getChatResponse(
-      currentMessages.map(({ isPlaying, audio, ...rest}) => rest),
+      history,
       input
     );
 
@@ -82,7 +94,9 @@ export function ChatWidget() {
     if (message.audio) {
       playAudio(message.audio, messageIndex);
     } else {
-      const result = await getTextToSpeech(message.content[0].text as string);
+      const textContent = message.content.find(c => c.text)?.text;
+      if (!textContent) return;
+      const result = await getTextToSpeech(textContent);
       if (result.success && result.audioData) {
         setMessages(prev => prev.map((m, i) => i === messageIndex ? { ...m, audio: result.audioData } : m));
         playAudio(result.audioData, messageIndex);

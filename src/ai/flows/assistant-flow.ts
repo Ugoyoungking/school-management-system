@@ -70,14 +70,7 @@ export async function chat(
   history: MessageData[],
   prompt: string
 ): Promise<{text: string}> {
-  // The history that comes from the client has a different format than the one expected by Genkit.
-  // We need to convert it to the format that Genkit expects.
-  const genkitHistory = history.map(msg => ({
-    role: msg.role,
-    content: msg.content,
-  }));
-
-  return assistantFlow({history: genkitHistory, prompt});
+  return assistantFlow({history, prompt});
 }
 
 export async function getAudioForText(text: string): Promise<string> {
