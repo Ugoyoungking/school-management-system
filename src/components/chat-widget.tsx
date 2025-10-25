@@ -1,25 +1,25 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { Bot, Loader2, Send, X, Volume2, Play } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { getChatResponse, getTextToSpeech } from "@/app/dashboard/chat/actions";
-import { cn } from "@/lib/utils";
-import type { MessageData } from "genkit/generate";
+import { useState, useRef, useEffect } from 'react';
+import { Bot, Loader2, Send, X, Volume2, Play, Copy } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { getChatResponse, getTextToSpeech } from '@/app/dashboard/chat/actions';
+import { cn } from '@/lib/utils';
+import type { MessageData } from 'genkit/generate';
 
 type ChatMessage = MessageData & {
-    audio?: string;
-    isPlaying?: boolean;
-}
+  audio?: string;
+  isPlaying?: boolean;
+};
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -41,36 +41,35 @@ export function ChatWidget() {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const userMessage: ChatMessage = { role: "user", content: [{ text: input }] };
+    const userMessage: ChatMessage = { role: 'user', content: [{ text: input }] };
     const currentMessages = [...messages, userMessage];
     setMessages(currentMessages);
-    setInput("");
+    setInput('');
     setIsLoading(true);
 
     const historyForAPI = currentMessages.map(({ isPlaying, audio, ...rest }) => {
-        // Genkit expects role and content, where content is an array of parts.
-        return {
-            role: rest.role,
-            content: rest.content,
-        };
+      return {
+        role: rest.role,
+        content: rest.content,
+      };
     });
 
-    // Remove the latest message from history, as it is the current prompt
     const history = historyForAPI.slice(0, -1);
-
-
-    const result = await getChatResponse(
-      history,
-      input
-    );
+    const result = await getChatResponse(history, input);
 
     setIsLoading(false);
 
     if (result.success) {
-      const modelMessage: ChatMessage = { role: "model", content: [{ text: result.message }] };
+      const modelMessage: ChatMessage = {
+        role: 'model',
+        content: [{ text: result.message }],
+      };
       setMessages((prev) => [...prev, modelMessage]);
     } else {
-       const errorMessage: ChatMessage = { role: "model", content: [{ text: result.error ?? 'Sorry, something went wrong.' }] };
+      const errorMessage: ChatMessage = {
+        role: 'model',
+        content: [{ text: result.error ?? 'Sorry, something went wrong.' }],
+      };
       setMessages((prev) => [...prev, errorMessage]);
     }
   };
@@ -79,26 +78,37 @@ export function ChatWidget() {
     const message = messages[messageIndex];
     if (!message || message.role !== 'model') return;
 
+    // If this message is playing, pause it.
     if (message.isPlaying) {
       audioRef.current?.pause();
-      setMessages(prev => prev.map((m, i) => i === messageIndex ? { ...m, isPlaying: false } : m));
+      setMessages((prev) =>
+        prev.map((m, i) =>
+          i === messageIndex ? { ...m, isPlaying: false } : m
+        )
+      );
       return;
     }
 
     // Stop any currently playing audio
     if (audioRef.current) {
-      audioRef.current.pause();
-      setMessages(prev => prev.map(m => ({ ...m, isPlaying: false })));
+        audioRef.current.pause();
+        // Reset isPlaying state for all messages
+        setMessages(prev => prev.map(m => ({ ...m, isPlaying: false })));
     }
+
 
     if (message.audio) {
       playAudio(message.audio, messageIndex);
     } else {
-      const textContent = message.content.find(c => c.text)?.text;
+      const textContent = message.content.find((c) => c.text)?.text;
       if (!textContent) return;
       const result = await getTextToSpeech(textContent);
       if (result.success && result.audioData) {
-        setMessages(prev => prev.map((m, i) => i === messageIndex ? { ...m, audio: result.audioData } : m));
+        setMessages((prev) =>
+          prev.map((m, i) =>
+            i === messageIndex ? { ...m, audio: result.audioData } : m
+          )
+        );
         playAudio(result.audioData, messageIndex);
       }
     }
@@ -109,14 +119,25 @@ export function ChatWidget() {
       audioRef.current.onended = null;
       audioRef.current = null;
     }
+
     const audio = new Audio(audioData);
     audioRef.current = audio;
     audio.play();
-    setMessages(prev => prev.map((m, i) => i === messageIndex ? { ...m, isPlaying: true } : { ...m, isPlaying: false }));
+
+    setMessages((prev) =>
+      prev.map((m, i) =>
+        i === messageIndex ? { ...m, isPlaying: true } : { ...m, isPlaying: false }
+      )
+    );
+
     audio.onended = () => {
-      setMessages(prev => prev.map((m, i) => i === messageIndex ? { ...m, isPlaying: false } : m));
+      setMessages((prev) =>
+        prev.map((m, i) =>
+          i === messageIndex ? { ...m, isPlaying: false } : m
+        )
+      );
     };
-  }
+  };
 
   return (
     <>
@@ -146,27 +167,68 @@ export function ChatWidget() {
                 <div
                   key={index}
                   className={cn(
-                    "flex items-start gap-3",
-                    msg.role === "user" ? "justify-end" : "justify-start"
+                    'flex items-start gap-3',
+                    msg.role === 'user' ? 'justify-end' : 'justify-start'
                   )}
                 >
-                  {msg.role === "model" && (
+                  {msg.role === 'model' && (
                     <Avatar className="h-8 w-8">
                       <AvatarFallback>AI</AvatarFallback>
                     </Avatar>
                   )}
                   <div
                     className={cn(
-                      "rounded-lg px-3 py-2 max-w-[80%]",
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                      'rounded-lg px-3 py-2 max-w-[80%]',
+                      msg.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
                     )}
                   >
-                    <div className="prose prose-sm">
-                      <ReactMarkdown>{msg.content[0].text}</ReactMarkdown>
+                    <div className="prose prose-sm max-w-full">
+                       <ReactMarkdown
+                        components={{
+                          pre({node, ...props}) {
+                            return <pre className="bg-muted-foreground/10 rounded-md p-0" {...props} />;
+                          },
+                          code({ node, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const codeString = String(children).replace(/\n$/, '');
+                            const [isCopied, setIsCopied] = useState(false);
+
+                            const handleCopy = () => {
+                                navigator.clipboard.writeText(codeString);
+                                setIsCopied(true);
+                                setTimeout(() => setIsCopied(false), 2000);
+                            };
+
+                            if (match) {
+                              return (
+                                <div className="relative">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="absolute top-1 right-1 h-6 w-6"
+                                        onClick={handleCopy}
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                        <span className="sr-only">{isCopied ? 'Copied!' : 'Copy code'}</span>
+                                    </Button>
+                                    <code className={cn("text-white p-4 block", className)} {...props}>
+                                        {children}
+                                    </code>
+                                    {isCopied && <div className="absolute top-8 right-1 text-xs text-green-500">Copied!</div>}
+                                </div>
+                              );
+                            } else {
+                              return <code className={cn("text-primary font-semibold", className)} {...props}>{children}</code>;
+                            }
+                          },
+                        }}
+                      >
+                        {msg.content[0].text}
+                      </ReactMarkdown>
                     </div>
-                    {msg.role === 'model' && (
+                     {msg.role === 'model' && (
                         <Button
                         variant="ghost"
                         size="icon"
@@ -178,7 +240,7 @@ export function ChatWidget() {
                         </Button>
                     )}
                   </div>
-                  {msg.role === "user" && (
+                  {msg.role === 'user' && (
                     <Avatar className="h-8 w-8">
                       <AvatarFallback>You</AvatarFallback>
                     </Avatar>
