@@ -1,3 +1,10 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "school-hero",
+      "description": "A modern school building exterior",
+      "imageUrl": "https://images.unsplash.com/photo-1586144131462-fa2a2b6d070c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBzY2hvb2x8ZW58MHx8fHwxNzYxMzMwMjE2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern school"
+    }
+  ]
 }
