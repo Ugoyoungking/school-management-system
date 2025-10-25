@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ArrowRight } from 'lucide-react';
+import { ChatWidget } from '@/components/chat-widget';
 
 export default function Home() {
   const heroImage = PlaceHolderImages.find((img) => img.id === 'school-hero');
@@ -72,6 +73,7 @@ export default function Home() {
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-muted-foreground">&copy; 2024 Glide and Reign Int'l School. All rights reserved.</p>
       </footer>
+      <ChatWidget />
     </div>
   );
 }
