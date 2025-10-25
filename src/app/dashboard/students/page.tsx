@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -39,7 +41,7 @@ export default function StudentsPage() {
                 Manage student accounts and information.
               </CardDescription>
             </div>
-            <Button size="sm">
+            <Button size="sm" onClick={() => alert('Add new student form should appear here.')}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Create Student
             </Button>

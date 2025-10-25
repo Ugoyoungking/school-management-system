@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -37,7 +39,7 @@ export default function FeesPage() {
               <CardTitle>Fee Payments</CardTitle>
               <CardDescription>Track payments and manage fees.</CardDescription>
             </div>
-            <Button size="sm">
+            <Button size="sm" onClick={() => alert('Record payment form should appear here.')}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Record Payment
             </Button>

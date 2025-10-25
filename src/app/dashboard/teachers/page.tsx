@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -40,7 +42,7 @@ export default function TeachersPage() {
                 Assign subjects and classes to teachers.
               </CardDescription>
             </div>
-            <Button size="sm">
+            <Button size="sm" onClick={() => alert('Add new teacher form should appear here.')}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Teacher
             </Button>
