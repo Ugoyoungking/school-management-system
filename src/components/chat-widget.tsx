@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Bot, Loader2, Send, X } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { getChatResponse } from "@/app/dashboard/chat/actions";
 import { cn } from "@/lib/utils";
 import type { MessageData } from "genkit/generate";
@@ -16,17 +17,28 @@ export function ChatWidget() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage: MessageData = { role: "user", content: [{ text: input }] };
-    setMessages((prev) => [...prev, userMessage]);
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
     setInput("");
     setIsLoading(true);
 
     const result = await getChatResponse(
-      [...messages, userMessage],
+      currentMessages,
       input
     );
 
@@ -62,8 +74,8 @@ export function ChatWidget() {
         <div className="p-4 border-b bg-primary text-primary-foreground rounded-t-lg">
           <h3 className="text-lg font-semibold">AI Assistant</h3>
         </div>
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
+        <ScrollArea className="flex-1" ref={scrollAreaRef}>
+          <div className="space-y-4 p-4">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -79,13 +91,13 @@ export function ChatWidget() {
                 )}
                 <div
                   className={cn(
-                    "rounded-lg px-3 py-2 max-w-[80%]",
+                    "rounded-lg px-3 py-2 max-w-[80%] prose prose-sm",
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted"
                   )}
                 >
-                  <p className="text-sm">{msg.content[0].text}</p>
+                  <ReactMarkdown>{msg.content[0].text}</ReactMarkdown>
                 </div>
                  {msg.role === "user" && (
                   <Avatar className="h-8 w-8">
