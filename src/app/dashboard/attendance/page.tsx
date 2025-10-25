@@ -1,3 +1,6 @@
+'use client';
+
+import * as React from 'react';
 import {
   Card,
   CardContent,
@@ -26,16 +29,31 @@ import { Label } from '@/components/ui/label';
 import { students } from '@/lib/data';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 export default function AttendancePage() {
   const classes = [...new Set(students.map((s) => s.class))];
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
+    new Date()
+  );
+  const [selectedClass, setSelectedClass] = React.useState<string | null>(null);
+  const [attendance, setAttendance] = React.useState<
+    Record<string, 'present' | 'absent' | 'late'>
+  >({});
 
-  // This would be a state in a client component
-  const selectedDate = new Date();
+  const handleAttendanceChange = (studentId: string, value: 'present' | 'absent' | 'late') => {
+    setAttendance((prev) => ({ ...prev, [studentId]: value }));
+  };
+  
+  const filteredStudents = selectedClass ? students.filter(s => s.class === selectedClass) : students.slice(0,5);
+
 
   return (
     <>
@@ -53,27 +71,31 @@ export default function AttendancePage() {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
-                    variant={"outline"}
+                    variant={'outline'}
                     className={cn(
-                      "w-[280px] justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
+                      'w-[280px] justify-start text-left font-normal',
+                      !selectedDate && 'text-muted-foreground'
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+                    {selectedDate ? (
+                      format(selectedDate, 'PPP')
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
-                    // onSelect would be used in a client component
+                    onSelect={setSelectedDate}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
 
-              <Select>
+              <Select onValueChange={setSelectedClass}>
                 <SelectTrigger className="w-full md:w-[180px]">
                   <SelectValue placeholder="Select Class" />
                 </SelectTrigger>
@@ -95,21 +117,40 @@ export default function AttendancePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {students.slice(0, 5).map((student) => (
+                  {filteredStudents.map((student) => (
                     <TableRow key={student.id}>
-                      <TableCell className="font-medium">{student.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {student.name}
+                      </TableCell>
                       <TableCell>
-                        <RadioGroup defaultValue={student.attendance} className="flex gap-4">
+                        <RadioGroup
+                          value={attendance[student.id] || student.attendance}
+                          onValueChange={(value: 'present' | 'absent' | 'late') => handleAttendanceChange(student.id, value)}
+                          className="flex gap-4"
+                        >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="present" id={`present-${student.id}`} />
-                            <Label htmlFor={`present-${student.id}`}>Present</Label>
+                            <RadioGroupItem
+                              value="present"
+                              id={`present-${student.id}`}
+                            />
+                            <Label htmlFor={`present-${student.id}`}>
+                              Present
+                            </Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="absent" id={`absent-${student.id}`} />
-                            <Label htmlFor={`absent-${student.id}`}>Absent</Label>
+                            <RadioGroupItem
+                              value="absent"
+                              id={`absent-${student.id}`}
+                            />
+                            <Label htmlFor={`absent-${student.id}`}>
+                              Absent
+                            </Label>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="late" id={`late-${student.id}`} />
+                            <RadioGroupItem
+                              value="late"
+                              id={`late-${student.id}`}
+                            />
                             <Label htmlFor={`late-${student.id}`}>Late</Label>
                           </div>
                         </RadioGroup>
@@ -120,7 +161,7 @@ export default function AttendancePage() {
               </Table>
             </div>
             <div className="flex justify-end mt-6">
-                <Button>Save Attendance</Button>
+              <Button>Save Attendance</Button>
             </div>
           </CardContent>
         </Card>
