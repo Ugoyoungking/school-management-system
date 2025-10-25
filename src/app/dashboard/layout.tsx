@@ -24,6 +24,7 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import { ChatWidget } from '@/components/chat-widget';
 
 export default function DashboardLayout({
   children,
@@ -104,6 +105,7 @@ export default function DashboardLayout({
       </Sidebar>
       <SidebarInset>
         <div className="flex flex-col h-full">{children}</div>
+        <ChatWidget />
       </SidebarInset>
     </SidebarProvider>
   );
